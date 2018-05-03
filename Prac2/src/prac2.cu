@@ -33,10 +33,10 @@ __global__ void pathcalc(float *d_z, float *d_v)
   // move array pointers to correct position
 
   // version 1
-  // ind = threadIdx.x + 2*N*blockIdx.x*blockDim.x;
+   ind = threadIdx.x + 2*N*blockIdx.x*blockDim.x;
 
   // version 2
-  ind = 2*N*threadIdx.x + 2*N*blockIdx.x*blockDim.x;
+//  ind = 2*N*threadIdx.x + 2*N*blockIdx.x*blockDim.x;
 
 
   // path calculation
@@ -47,15 +47,15 @@ __global__ void pathcalc(float *d_z, float *d_v)
   for (int n=0; n<N; n++) {
     y1   = d_z[ind];
     // version 1
-    // ind += blockDim.x;      // shift pointer to next element
+     ind += blockDim.x;      // shift pointer to next element
     // version 2
-    ind += 1; 
+//    ind += 1;
 
     y2   = rho*y1 + alpha*d_z[ind];
     // version 1
-    // ind += blockDim.x;      // shift pointer to next element
+     ind += blockDim.x;      // shift pointer to next element
     // version 2
-    ind += 1; 
+//    ind += 1;
 
     s1 = s1*(con1 + con2*y1);
     s2 = s2*(con1 + con2*y2);
@@ -76,31 +76,27 @@ __global__ void pathcalc(float *d_z, float *d_v)
 
 int main(int argc, const char **argv){
     
-  int     NPATH=6400, h_N=100;
-  float   h_T, h_r, h_sigma, h_rho, h_alpha, h_dt, h_con1, h_con2;
-  float  *h_v, *d_v, *d_z;
-  double  sum1, sum2;
-
   // initialise card
-
+  int NPATH=6400, h_N=100;
   findCudaDevice(argc, argv);
 
   // initialise CUDA timing
-
   float milli;
   cudaEvent_t start, stop;
   cudaEventCreate(&start);
   cudaEventCreate(&stop);
 
-  // allocate memory on host and device
+  // allocate memory on host
+  float *h_v = (float *)malloc(sizeof(float)*NPATH);
 
-  h_v = (float *)malloc(sizeof(float)*NPATH);
-
-  checkCudaErrors( cudaMalloc((void **)&d_v, sizeof(float)*NPATH) );
-  checkCudaErrors( cudaMalloc((void **)&d_z, sizeof(float)*2*h_N*NPATH) );
+  // allocate memory on device
+  float *d_v = NULL;
+  float *d_z = NULL;
+  checkCudaErrors(cudaMalloc((void **)&d_v, sizeof(float)*NPATH));
+  checkCudaErrors(cudaMalloc((void **)&d_z, sizeof(float)*2*h_N*NPATH));
 
   // define constants and transfer to GPU
-
+  float   h_T, h_r, h_sigma, h_rho, h_alpha, h_dt, h_con1, h_con2;
   h_T     = 1.0f;
   h_r     = 0.05f;
   h_sigma = 0.1f;
@@ -121,7 +117,6 @@ int main(int argc, const char **argv){
   checkCudaErrors( cudaMemcpyToSymbol(con2, &h_con2, sizeof(h_con2)) );
 
   // random number generation
-
   cudaEventRecord(start);
 
   curandGenerator_t gen;
@@ -137,7 +132,6 @@ int main(int argc, const char **argv){
           milli, 2.0*h_N*NPATH/(0.001*milli));
 
   // execute kernel and time it
-
   cudaEventRecord(start);
 
   pathcalc<<<NPATH/64, 64>>>(d_z, d_v);
@@ -150,12 +144,10 @@ int main(int argc, const char **argv){
   printf("Monte Carlo kernel execution time (ms): %f \n",milli);
 
   // copy back results
-
-  checkCudaErrors( cudaMemcpy(h_v, d_v, sizeof(float)*NPATH,
-                   cudaMemcpyDeviceToHost) );
+  checkCudaErrors(cudaMemcpy(h_v, d_v, sizeof(float)*NPATH, cudaMemcpyDeviceToHost));
 
   // compute average
-
+  double sum1, sum2;
   sum1 = 0.0;
   sum2 = 0.0;
   for (int i=0; i<NPATH; i++) {
@@ -167,17 +159,14 @@ int main(int argc, const char **argv){
 	 sum1/NPATH, sqrt((sum2/NPATH - (sum1/NPATH)*(sum1/NPATH))/NPATH) );
 
   // Tidy up library
-
   checkCudaErrors( curandDestroyGenerator(gen) );
 
   // Release memory and exit cleanly
-
   free(h_v);
   checkCudaErrors( cudaFree(d_v) );
   checkCudaErrors( cudaFree(d_z) );
 
   // CUDA exit -- needed to flush printf write buffer
-
   cudaDeviceReset();
 
 }

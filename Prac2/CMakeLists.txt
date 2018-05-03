@@ -51,8 +51,19 @@ cuda_add_executable(prac2
     src/prac2.cu
 )
 
+cuda_add_executable(prac2b
+    src/prac2b.cu
+)
+
 # Specify target & libraries to link it with
 target_link_libraries(prac2
+    ${CUDA_cudart_LIBRARY}
+    ${CUDA_curand_LIBRARY}
+    ${CUDA_LIBRARIES}
+    ${CUDA_NVCC_FLAGS}
+)
+
+target_link_libraries(prac2b
     ${CUDA_cudart_LIBRARY}
     ${CUDA_curand_LIBRARY}
     ${CUDA_LIBRARIES}
