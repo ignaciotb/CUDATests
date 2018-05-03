@@ -43,6 +43,7 @@ link_directories(
     ${CUDA_LIBRARY_DIRS}
     )
 
+# Output dir for binaries
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 # Specify target & source files 

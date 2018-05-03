@@ -7,8 +7,14 @@
 #include <string.h>
 #include <math.h>
 
-#include <cuda.h>
+// From CUDA headers
 #include <cuda_runtime.h>
+#include <cuda.h>
+#include <device_launch_parameters.h>
+
+// From the SDK
+#include "helper_cuda.h"
+#include "helper_string.h"
 
 //
 // kernel routine
@@ -32,13 +38,11 @@ int main(int argc, char **argv)
   int   nblocks, nthreads, nsize, n; 
 
   // set number of blocks, and threads per block
-
   nblocks  = 2;
   nthreads = 8;
   nsize    = nblocks*nthreads ;
 
   // allocate memory for array
-
   h_x = (float *)malloc(nsize*sizeof(float));
   cudaMalloc((void **)&d_x, nsize*sizeof(float));
 
@@ -51,12 +55,10 @@ int main(int argc, char **argv)
   for (n=0; n<nsize; n++) printf(" n,  x  =  %d  %f \n",n,h_x[n]);
 
   // free memory 
-
   cudaFree(d_x);
   free(h_x);
 
   // CUDA exit -- needed to flush printf write buffer
-
   cudaDeviceReset();
 
   return 0;
