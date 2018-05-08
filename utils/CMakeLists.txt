@@ -14,6 +14,11 @@ else()
     message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++14 or C++11 support. Please use a different C++ compiler.")
 endif()
 
+find_package (Eigen3 REQUIRED NO_MODULE)
+if (TARGET Eigen3::Eigen)
+  message("Eigen libs found")
+endif (TARGET Eigen3::Eigen)
+
 find_package(CUDA 9.1 REQUIRED)
 
 # Pass options to NVCC
