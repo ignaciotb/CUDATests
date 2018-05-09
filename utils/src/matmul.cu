@@ -52,21 +52,29 @@ __device__ Matrix GetSubMatrix(Matrix A, int row, int col){
 
 __global__ void matMulSharedMemKernel(Matrix A, Matrix B, Matrix C){
 
+    // Block row and column
     int blockRow = blockIdx.y;
     int blockCol = blockIdx.x;
 
+    // Each thread block computes one sub-matrix Csub of C
     Matrix Csub = GetSubMatrix(C, blockRow, blockCol);
 
+    // Each thread computes one element of Csub by accumulating results into Cvalue
     float Cvalue = 0;
 
+    // Thread row and column within Csub
     int row = threadIdx.y;
     int col = threadIdx.x;
 
+    // Loop over all the sub-matrices of A and B that are required to compute Csub
+    // Multiply each pair of sub-matrices together and accumulate the results
     for(int m = 0; m < (A.width / BLOCK_SIZE); m++){
 
+        // Get sub-matrices Asub of A and Bsub of B
         Matrix Asub = GetSubMatrix(A, blockRow, m);
         Matrix Bsub = GetSubMatrix(B, m, blockCol);
 
+        // Shared memory used to store Asub and Bsub respectively
         __shared__ float As[BLOCK_SIZE][BLOCK_SIZE];
         __shared__ float Bs[BLOCK_SIZE][BLOCK_SIZE];
 
@@ -86,7 +94,8 @@ __global__ void matMulSharedMemKernel(Matrix A, Matrix B, Matrix C){
 
     }
 
-    // Write Csub to device memory each thread writes one element
+    // Write Csub to device memory
+    // Each thread writes one element
     SetElement(Csub, row, col, Cvalue);
 }
 

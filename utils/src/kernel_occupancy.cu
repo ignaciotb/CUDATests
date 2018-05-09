@@ -30,10 +30,9 @@ int launchMyKernel(int *array, int arrayCount) {
 	int blockSize;	// The launch configurator returned block size
 
 	int minGridSize; // The minimum grid size needed to achieve the 
-					 // maximum occupancy for a full device 
-					 // launch
-	int gridSize;	 // The actual grid size needed, based on input 
-					 // size
+					 // maximum occupancy for a full device launch
+    int gridSize;	 // The actual grid size needed, based on input size
+
 	cudaOccupancyMaxPotentialBlockSize( &minGridSize, &blockSize, (void*)MyKernelEx2, 0,arrayCount); // Round up according to array size
 	gridSize = (arrayCount + blockSize - 1) / blockSize;
 	MyKernelEx2<<<gridSize, blockSize>>>(array, arrayCount);
@@ -44,7 +43,7 @@ int launchMyKernel(int *array, int arrayCount) {
 
 int main() {
 	int numBlocks; // Occupancy in terms of active blocks
-	int blockSize = 128; 
+    int blockSize = 64;
 
 	// These variables are used to convert occupancy to warps 
 	int device;
@@ -59,8 +58,8 @@ int main() {
 	activeWarps = numBlocks * blockSize / prop.warpSize;
 	maxWarps = prop.maxThreadsPerMultiProcessor / prop.warpSize;
 	std::cout << "Num of blocks: " << numBlocks << std::endl;
-	std::cout << "Max num of warps per SM: " << maxWarps << std::endl;
-	std::cout << "Max threads per SM: " << prop.maxThreadsPerMultiProcessor << std::endl;
+//	std::cout << "Max num of warps per SM: " << maxWarps << std::endl;
+//	std::cout << "Max threads per SM: " << prop.maxThreadsPerMultiProcessor << std::endl;
 	std::cout << "Occupancy: " << (double)activeWarps / maxWarps * 100 << "%" << std::endl;
 	return 0;
 } 

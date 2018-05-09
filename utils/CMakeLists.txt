@@ -19,6 +19,10 @@ if (TARGET Eigen3::Eigen)
   message("Eigen libs found")
 endif (TARGET Eigen3::Eigen)
 
+# Compiler build flags
+#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
+#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
+
 find_package(CUDA 9.1 REQUIRED)
 
 # Pass options to NVCC
